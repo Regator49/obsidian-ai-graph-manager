@@ -25,6 +25,5 @@ dist-ssr
 
 # Obsidian
 .obsidian
-main.js
 main.js.map
 *.tsbuildinfo
