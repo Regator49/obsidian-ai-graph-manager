@@ -143,6 +143,30 @@ class NIMService {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
 
+  private buildApiUrl(path: string): string {
+    let endpoint = this.config.endpoint;
+    
+    if (!endpoint || endpoint.trim() === '') {
+      throw new Error('API endpoint is not configured');
+    }
+    
+    endpoint = endpoint.trim();
+    
+    if (endpoint.endsWith('/')) {
+      endpoint = endpoint.slice(0, -1);
+    }
+    
+    if (endpoint.endsWith('/v1')) {
+      return `${endpoint}${path}`;
+    }
+    
+    if (path.startsWith('/')) {
+      return `${endpoint}/v1${path}`;
+    }
+    
+    return `${endpoint}/v1/${path}`;
+  }
+
   async getEmbedding(text: string): Promise<number[]> {
     const request: EmbeddingRequest = {
       input: text,
@@ -150,8 +174,9 @@ class NIMService {
       encoding_format: 'float'
     };
 
+    const apiUrl = this.buildApiUrl('/embeddings');
     const response = await this.fetchWithRetry<EmbeddingResponse>(
-      `${this.config.endpoint}/v1/embeddings`,
+      apiUrl,
       {
         method: 'POST',
         body: JSON.stringify(request)
@@ -177,8 +202,9 @@ class NIMService {
         encoding_format: 'float'
       };
 
+      const apiUrl = this.buildApiUrl('/embeddings');
       const response = await this.fetchWithRetry<EmbeddingResponse>(
-        `${this.config.endpoint}/v1/embeddings`,
+        apiUrl,
         {
           method: 'POST',
           body: JSON.stringify(request)
@@ -366,8 +392,9 @@ class NIMService {
       max_tokens: 150
     };
 
+    const apiUrl = this.buildApiUrl('/chat/completions');
     const response = await this.fetchWithRetry<ChatCompletionResponse>(
-      `${this.config.endpoint}/v1/chat/completions`,
+      apiUrl,
       {
         method: 'POST',
         body: JSON.stringify(request)
@@ -399,27 +426,30 @@ class NIMService {
 
   async healthCheck(): Promise<boolean> {
     try {
-      await this.fetchWithRetry<any>(
-        `${this.config.endpoint}/health`,
-        { method: 'GET' }
-      );
-      return true;
-    } catch {
       try {
+        const apiUrl = this.buildApiUrl('/models');
         await this.fetchWithRetry<any>(
-          `${this.config.endpoint}/v1/models`,
+          apiUrl,
           { method: 'GET' }
         );
         return true;
       } catch {
-        return false;
+        const healthUrl = this.buildApiUrl('/health');
+        await this.fetchWithRetry<any>(
+          healthUrl,
+          { method: 'GET' }
+        );
+        return true;
       }
+    } catch {
+      return false;
     }
   }
 
   async getAvailableModels(): Promise<any> {
+    const apiUrl = this.buildApiUrl('/models');
     return this.fetchWithRetry<any>(
-      `${this.config.endpoint}/v1/models`,
+      apiUrl,
       { method: 'GET' }
     );
   }

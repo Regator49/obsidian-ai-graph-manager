@@ -15,7 +15,7 @@ interface PluginSettings {
 }
 
 const DEFAULT_SETTINGS: PluginSettings = {
-  endpoint: 'https://integrate.api.nvidia.com',
+  endpoint: 'https://integrate.api.nvidia.com/v1',
   apiKey: '',
   embeddingModel: 'nvidia/nv-embedqa-e5-v5',
   chatModel: 'nvidia/llama-3.1-nemotron-70b-instruct',
@@ -45,13 +45,13 @@ export class NIMGraphSettingsTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName('API Endpoint')
-      .setDesc('The NVIDIA NIM API endpoint URL')
+      .setDesc('The base URL of your API provider (e.g., https://integrate.api.nvidia.com/v1 or https://api.openai.com/v1). The plugin will automatically handle the API paths.')
       .addText((text) => {
         text
-          .setPlaceholder('https://integrate.api.nvidia.com')
+          .setPlaceholder('https://integrate.api.nvidia.com/v1')
           .setValue(this.settings.endpoint)
           .onChange(async (value) => {
-            this.settings.endpoint = value;
+            this.settings.endpoint = value.trim();
             await this.plugin.saveSettings();
           });
         text.inputEl.type = 'url';
@@ -276,16 +276,32 @@ export class NIMGraphSettingsTab extends PluginSettingTab {
           buttonEl.disabled = true;
 
           try {
+            if (!this.settings.endpoint) {
+              this.showErrorMessage(containerEl, 'Please enter an API endpoint first.');
+              buttonEl.textContent = originalText;
+              buttonEl.disabled = false;
+              return;
+            }
+
+            if (!this.settings.apiKey) {
+              this.showErrorMessage(containerEl, 'Please enter an API key first.');
+              buttonEl.textContent = originalText;
+              buttonEl.disabled = false;
+              return;
+            }
+
             const service = this.createNIMService();
             const isHealthy = await service.healthCheck();
 
             if (isHealthy) {
               this.showSuccessMessage(containerEl, 'Connection successful! Your API configuration is working.');
             } else {
-              this.showErrorMessage(containerEl, 'Connection failed. Please check your API key and endpoint.');
+              this.showErrorMessage(containerEl, 'Connection failed. Please check your API endpoint and key, and verify your internet connection.');
             }
           } catch (error) {
-            this.showErrorMessage(containerEl, `Connection error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+            console.error('API connection test failed:', error);
+            this.showErrorMessage(containerEl, `Connection error: ${errorMsg}. Please check your endpoint format and API key.`);
           }
 
           buttonEl.textContent = originalText;
