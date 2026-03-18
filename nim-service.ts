@@ -442,7 +442,10 @@ class NIMService {
 }
 
 export {
-  NIMService,
+  NIMService
+};
+
+export type {
   NIMConfig,
   EmbeddingRequest,
   EmbeddingResponse,

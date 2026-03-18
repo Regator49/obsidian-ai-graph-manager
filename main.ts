@@ -1,4 +1,4 @@
-import { Plugin, TFile, App } from 'obsidian';
+import { Plugin, TFile, App, Notice } from 'obsidian';
 import { NIMGraphSettingsTab, PluginSettings, DEFAULT_SETTINGS } from './settings';
 import { NIMService } from './nim-service';
 
@@ -31,12 +31,10 @@ export default class NIMGraphManager extends Plugin {
 		this.potentialConnections = [];
 
 		this.nimService = new NIMService({
-			apiEndpoint: this.settings.apiEndpoint,
+			endpoint: this.settings.endpoint,
 			apiKey: this.settings.apiKey,
 			embeddingModel: this.settings.embeddingModel,
-			chatModel: this.settings.chatModel,
-			maxRetries: 3,
-			retryDelay: 1000
+			chatModel: this.settings.chatModel
 		});
 
 		this.addRibbonIcon('network', 'NIM Graph Manager', () => {
@@ -55,7 +53,8 @@ export default class NIMGraphManager extends Plugin {
 			id: 'open-nim-settings',
 			name: 'Open NIM Graph settings',
 			callback: () => {
-				this.openSettings();
+				(this.app as any).setting.open();
+				(this.app as any).setting.openTabById('nim-graph-manager');
 			}
 		});
 
@@ -75,15 +74,13 @@ export default class NIMGraphManager extends Plugin {
 	async loadSettings() {
 		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
 		
-		if (this.settings) {
-			this.nimService.config = {
-				apiEndpoint: this.settings.apiEndpoint,
+		if (this.settings && this.nimService) {
+			this.nimService.updateConfig({
+				endpoint: this.settings.endpoint,
 				apiKey: this.settings.apiKey,
 				embeddingModel: this.settings.embeddingModel,
-				chatModel: this.settings.chatModel,
-				maxRetries: 3,
-				retryDelay: 1000
-			};
+				chatModel: this.settings.chatModel
+			});
 		}
 	}
 
@@ -92,9 +89,8 @@ export default class NIMGraphManager extends Plugin {
 	}
 
 	async analyzeAndSuggestConnections() {
-		if (!this.settings.apiEndpoint || !this.settings.apiKey) {
+		if (!this.settings.endpoint || !this.settings.apiKey) {
 			new Notice('Please configure your NVIDIA NIM API settings first');
-			this.openSettings();
 			return;
 		}
 
@@ -188,7 +184,7 @@ export default class NIMGraphManager extends Plugin {
 			reasons.push(`High term overlap: ${(termOverlap * 100).toFixed(0)}%`);
 		}
 
-		if (this.settings.apiKey && this.settings.apiEndpoint) {
+		if (this.settings.apiKey && this.settings.endpoint) {
 			try {
 				const aiReasoning = await this.getAIConnectionSuggestion(metaA, metaB);
 				if (aiReasoning.suggested) {
@@ -237,23 +233,20 @@ export default class NIMGraphManager extends Plugin {
 		reason: string;
 	}> {
 		try {
-			const prompt = `Analyze these two notes and suggest if they should be connected in a knowledge graph.
-				
-Note 1: "${metaA.title}"
-${metaA.content.substring(0, 500)}
-
-Note 2: "${metaB.title}"
-${metaB.content.substring(0, 500)}
-
-Respond with JSON only: {"suggested": true/false, "confidence": 0-1, "reason": "explanation"}`;
-
-			const response = await this.nimService.getChatCompletion(prompt);
-			const parsed = JSON.parse(response);
+			const note1 = { id: metaA.path, title: metaA.title, content: metaA.content };
+			const note2 = { id: metaB.path, title: metaB.title, content: metaB.content };
+			
+			const similarity = this.calculateTermOverlap(metaA, metaB);
+			const explanation = await this.nimService.generateConnectionExplanation(
+				note1, 
+				note2, 
+				similarity
+			);
 			
 			return {
-				suggested: parsed.suggested || false,
-				confidence: parsed.confidence || 0,
-				reason: parsed.reason || ''
+				suggested: true,
+				confidence: similarity * 0.4,
+				reason: explanation
 			};
 		} catch (error) {
 			console.error('AI suggestion failed:', error);

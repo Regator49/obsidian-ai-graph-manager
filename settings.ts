@@ -1,5 +1,6 @@
-import { PluginSettingTab, App, Setting, ButtonComponent, TextComponent, DropdownComponent } from 'obsidian';
+import { PluginSettingTab, App, Setting, ButtonComponent, TextComponent, DropdownComponent, Plugin } from 'obsidian';
 import { NIMService } from './nim-service';
+import NIMGraphManager from './main';
 
 interface PluginSettings {
   endpoint: string;
@@ -26,14 +27,14 @@ const DEFAULT_SETTINGS: PluginSettings = {
 };
 
 export class NIMGraphSettingsTab extends PluginSettingTab {
+  plugin: NIMGraphManager;
   settings: PluginSettings;
   nimService: NIMService | null = null;
-  private saveAction: () => Promise<void>;
 
-  constructor(app: App, settings: PluginSettings, saveAction: () => Promise<void>) {
-    super(app, app);
-    this.settings = settings;
-    this.saveAction = saveAction;
+  constructor(app: App, plugin: NIMGraphManager) {
+    super(app, plugin);
+    this.plugin = plugin;
+    this.settings = plugin.settings;
   }
 
   display(): void {
@@ -51,7 +52,7 @@ export class NIMGraphSettingsTab extends PluginSettingTab {
           .setValue(this.settings.endpoint)
           .onChange(async (value) => {
             this.settings.endpoint = value;
-            await this.saveAction();
+            await this.plugin.saveSettings();
           });
         text.inputEl.type = 'url';
       });
@@ -65,7 +66,7 @@ export class NIMGraphSettingsTab extends PluginSettingTab {
           .setValue(this.settings.apiKey)
           .onChange(async (value) => {
             this.settings.apiKey = value;
-            await this.saveAction();
+            await this.plugin.saveSettings();
           });
         text.inputEl.type = 'password';
       });
@@ -101,7 +102,7 @@ export class NIMGraphSettingsTab extends PluginSettingTab {
         dropdown.setValue(this.settings.embeddingModel);
         dropdown.onChange(async (value) => {
           this.settings.embeddingModel = value;
-          await this.saveAction();
+          await this.plugin.saveSettings();
         });
       });
 
@@ -124,7 +125,7 @@ export class NIMGraphSettingsTab extends PluginSettingTab {
         dropdown.setValue(this.settings.chatModel);
         dropdown.onChange(async (value) => {
           this.settings.chatModel = value;
-          await this.saveAction();
+          await this.plugin.saveSettings();
         });
       });
 
@@ -177,7 +178,7 @@ export class NIMGraphSettingsTab extends PluginSettingTab {
             const numValue = parseFloat(value);
             if (!isNaN(numValue) && numValue >= 0 && numValue <= 1) {
               this.settings.connectionThreshold = numValue;
-              await this.saveAction();
+              await this.plugin.saveSettings();
             }
           });
         text.inputEl.type = 'number';
@@ -197,7 +198,7 @@ export class NIMGraphSettingsTab extends PluginSettingTab {
             const numValue = parseInt(value);
             if (!isNaN(numValue) && numValue > 0) {
               this.settings.maxSuggestedConnections = numValue;
-              await this.saveAction();
+              await this.plugin.saveSettings();
             }
           });
         text.inputEl.type = 'number';
@@ -219,7 +220,7 @@ export class NIMGraphSettingsTab extends PluginSettingTab {
           .setValue(this.settings.autoProcessOnLoad)
           .onChange(async (value) => {
             this.settings.autoProcessOnLoad = value;
-            await this.saveAction();
+            await this.plugin.saveSettings();
           });
       });
 
@@ -234,7 +235,7 @@ export class NIMGraphSettingsTab extends PluginSettingTab {
             const numValue = parseFloat(value);
             if (!isNaN(numValue) && numValue >= 0 && numValue <= 1) {
               this.settings.autoProcessThreshold = numValue;
-              await this.saveAction();
+              await this.plugin.saveSettings();
             }
           });
         text.inputEl.type = 'number';
@@ -251,7 +252,7 @@ export class NIMGraphSettingsTab extends PluginSettingTab {
           .setValue(this.settings.showNotifications)
           .onChange(async (value) => {
             this.settings.showNotifications = value;
-            await this.saveAction();
+            await this.plugin.saveSettings();
           });
       });
   }
@@ -265,10 +266,10 @@ export class NIMGraphSettingsTab extends PluginSettingTab {
       .setDesc('Verify your API configuration is working correctly')
       .addButton((button) => {
         button.setButtonText('Test Connection');
-        button.setClass('mod-cta');
+          button.setClass('mod-cta');
 
-        button.el.addEventListener('click', async () => {
-          const buttonEl = button.buttonEl;
+          button.buttonEl.addEventListener('click', async () => {
+            const buttonEl = button.buttonEl;
           const originalText = buttonEl.textContent;
           
           buttonEl.textContent = 'Testing...';
@@ -298,7 +299,7 @@ export class NIMGraphSettingsTab extends PluginSettingTab {
       .addButton((button) => {
         button.setButtonText('Validate');
         
-        button.el.addEventListener('click', () => {
+        button.buttonEl.addEventListener('click', () => {
           const issues: string[] = [];
 
           if (!this.settings.endpoint) {
@@ -374,4 +375,5 @@ export class NIMGraphSettingsTab extends PluginSettingTab {
   }
 }
 
-export { DEFAULT_SETTINGS, PluginSettings };
+export type { PluginSettings };
+export { DEFAULT_SETTINGS };

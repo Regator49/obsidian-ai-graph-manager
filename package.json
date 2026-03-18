@@ -2,6 +2,7 @@
   "name": "obsidian-nim-graph",
   "version": "1.0.0",
   "description": "An Obsidian plugin for Nim graph visualization",
+  "type": "module",
   "main": "main.js",
   "scripts": {
     "dev": "node esbuild.config.js",
