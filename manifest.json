@@ -1,7 +1,7 @@
 {
   "id": "ai-graph-manager",
   "name": "AI Graph Manager",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "minAppVersion": "1.0.0",
   "description": "Universal AI-powered graph management using customizable API providers (NVIDIA NIM, OpenAI, Anthropic, and OpenAI-compatible APIs) for intelligent note connections and graph optimization",
   "author": "Regator49",
