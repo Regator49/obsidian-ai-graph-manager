@@ -1,0 +1,10 @@
+{
+  "id": "nim-graph-manager",
+  "name": "NIM Graph Manager",
+  "version": "0.0.1",
+  "minAppVersion": "1.0.0",
+  "description": "AI-powered graph management using NVIDIA NIM API for intelligent note connections and graph optimization",
+  "author": "Your Name",
+  "authorUrl": "",
+  "isDesktopOnly": false
+}
