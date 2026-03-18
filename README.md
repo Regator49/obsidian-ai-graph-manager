@@ -1,13 +1,14 @@
-# NIM Graph Manager
+# AI Graph Manager
 
-AI-powered graph management using NVIDIA NIM API for intelligent note connections and graph optimization in Obsidian.
+Universal AI-powered graph management for Obsidian using customizable API providers (NVIDIA NIM, OpenAI, Anthropic, etc.) for intelligent note connections and graph optimization.
 
 ## Features
 
-- **AI-Powered Connections**: Leverages NVIDIA NIM API to analyze your notes and suggest meaningful connections between them
+- **Universal API Support**: Works with NVIDIA NIM, OpenAI, Anthropic, and any OpenAI-compatible API
+- **AI-Powered Connections**: Leverage AI to analyze your notes and suggest meaningful connections between them
 - **Graph Optimization**: Automatically optimizes the graph view by highlighting important relationships and clustering related notes
 - **Smart Suggestions**: Receive intelligent recommendations for note connections based on content analysis
-- **Multi-Model Support**: Compatible with various NVIDIA NIM hosted models for different use cases
+- **Multi-Model Support**: Compatible with various AI models and hosting providers
 - **Customizable Settings**: Configure API keys, model parameters, and optimization preferences
 - **Real-Time Analysis**: Analyze changes in your vault and update graph connections dynamically
 - **Batch Processing**: Process multiple notes at once for efficient graph updates
@@ -24,25 +25,27 @@ BRAT is the recommended method for installing beta and unreleased Obsidian plugi
 3. Install "BRAT" if you haven't already
 4. Go to Settings → Community Plugins → BRAT
 5. Click "Add a Beta Plugin for Testing"
-6. Enter the plugin repository URL
+6. Enter this repository URL: `https://github.com/Regator49/obsidian-ai-graph-manager.git`
 7. Click "Scan"
-8. Click "Install" next to "NIM Graph Manager"
-9. Navigate to Community Plugins and enable "NIM Graph Manager"
+8. Click "Install" next to "AI Graph Manager"
+9. Navigate to Community Plugins and enable "AI Graph Manager"
 
 ### Manual Installation
 
-1. Download the latest release from the [Releases page](https://github.com/yourusername/obsidian-nim-graph/releases)
+1. Download the latest release from the [Releases page](https://github.com/Regator49/obsidian-ai-graph-manager/releases)
 2. Extract the downloaded ZIP file
 3. Copy the extracted folder to your Obsidian vault's `.obsidian/plugins/` directory
-4. Rename the folder to `nim-graph-manager`
+4. Rename the folder to `ai-graph-manager`
 5. Restart Obsidian
-6. Go to Settings → Community Plugins and enable "NIM Graph Manager"
+6. Go to Settings → Community Plugins and enable "AI Graph Manager"
 
 ## Configuration
 
-### Setting Up NVIDIA NIM API
+### Setting Up Your API Connection
 
-To use NIM Graph Manager, you need to configure your NVIDIA NIM API credentials:
+AI Graph Manager supports multiple API providers. Choose the one that works best for you:
+
+#### NVIDIA NIM (Recommended)
 
 1. **Get NVIDIA NIM Access**:
    - Visit [NVIDIA NIM](https://build.nvidia.com/nim) to explore available models
@@ -51,13 +54,29 @@ To use NIM Graph Manager, you need to configure your NVIDIA NIM API credentials:
    - Generate a new API key for your application
 
 2. **Configure API Settings**:
-   - Open Obsidian Settings → Community Plugins → NIM Graph Manager
+   - Open Obsidian Settings → Community Plugins → AI Graph Manager
+   - Set **API Endpoint** to: `https://integrate.api.nvidia.com`
    - Enter your NVIDIA NIM API Key in the "API Key" field
-   - Select your preferred model from the dropdown (e.g., `meta/llama-3.1-70b-instruct`)
-   - Configure additional settings as needed:
-     - **Temperature**: Controls randomness (0.0-2.0, default: 0.7)
-     - **Max Tokens**: Maximum response length (default: 1024)
-     - **Base URL**: Custom NIM endpoint if using self-hosted instance
+   - Select your preferred models from the dropdowns
+
+#### OpenAI
+
+1. **Get OpenAI Access**:
+   - Visit [OpenAI API](https://platform.openai.com/)
+   - Generate an API key
+
+2. **Configure API Settings**:
+   - Set **API Endpoint** to: `https://api.openai.com/v1`
+   - Enter your OpenAI API Key
+   - Select `gpt-4` or `gpt-3.5-turbo` as your models
+
+#### Other Providers
+
+Any OpenAI-compatible API should work by setting the appropriate:
+- **API Endpoint**: The base URL of your API provider
+- **API Key**: Your authentication key
+- **Embedding Model**: For text embeddings (e.g., `text-embedding-ada-002`)
+- **Chat Model**: For chat completions (e.g., `gpt-4`)
 
 3. **Test Connection**:
    - Click "Test API Connection" to verify your credentials
@@ -65,11 +84,11 @@ To use NIM Graph Manager, you need to configure your NVIDIA NIM API credentials:
 
 ### Plugin Settings
 
-- **Auto-Analyze on Note Changes**: Automatically analyze notes when they are modified
-- **Graph Update Frequency**: How often to refresh graph connections (e.g., every 5 minutes)
-- **Connection Strength Threshold**: Minimum confidence score for suggested connections (0-100)
-- **Graph Clustering**: Enable automatic clustering of related notes
-- **Max Suggestions per Note**: Maximum number of connection suggestions per note
+- **Connection Threshold**: Minimum similarity score for suggested connections (0.0-1.0)
+- **Max Suggested Connections**: Maximum number of connection suggestions per note
+- **Auto Process on Load**: Automatically analyze graph connections when Obsidian loads
+- **Auto Process Threshold**: Higher threshold for automatic processing (reduces noise)
+- **Show Notifications**: Display notifications when connections are found
 
 ## Usage
 
