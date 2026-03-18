@@ -427,21 +427,38 @@ class NIMService {
   async healthCheck(): Promise<boolean> {
     try {
       try {
-        const apiUrl = this.buildApiUrl('/models');
-        await this.fetchWithRetry<any>(
+        const apiUrl = this.buildApiUrl('/embeddings');
+        await this.fetchWithRetry<EmbeddingResponse>(
           apiUrl,
-          { method: 'GET' }
+          {
+            method: 'POST',
+            body: JSON.stringify({
+              input: 'test',
+              model: this.config.embeddingModel,
+              encoding_format: 'float'
+            })
+          }
         );
         return true;
-      } catch {
-        const healthUrl = this.buildApiUrl('/health');
-        await this.fetchWithRetry<any>(
-          healthUrl,
-          { method: 'GET' }
-        );
-        return true;
+      } catch (error) {
+        console.log('Health check via embedding endpoint failed, trying chat endpoint:', error);
       }
-    } catch {
+
+      const chatUrl = this.buildApiUrl('/chat/completions');
+      await this.fetchWithRetry<any>(
+        chatUrl,
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            model: this.config.chatModel,
+            messages: [{role: 'user', content: 'test'}],
+            max_tokens: 1
+          })
+        }
+      );
+      return true;
+    } catch (error) {
+      console.error('Health check failed:', error);
       return false;
     }
   }
